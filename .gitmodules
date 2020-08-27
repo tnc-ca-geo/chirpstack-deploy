@@ -1,0 +1,3 @@
+[submodule "external/chirpstack-ansible-playbook"]
+	path = external/chirpstack-ansible-playbook
+	url = https://github.com/brocaar/chirpstack-ansible-playbook.git
