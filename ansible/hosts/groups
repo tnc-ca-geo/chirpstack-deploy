@@ -1,0 +1,6 @@
+[chirpstack]
+chirpstack.codefornature.org
+# vagrant
+
+[chirpstack_machines:children]
+chirpstack

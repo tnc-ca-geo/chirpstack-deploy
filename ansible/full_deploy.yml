@@ -13,6 +13,8 @@
   hosts:
     - single_server
     - vagrant
+  vars_files:
+    - ./variables/config.yml
   roles:
     - base
     - iptables

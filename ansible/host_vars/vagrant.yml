@@ -91,10 +91,10 @@ postgresql:
       user: chirpstack_ns
       password: chirpstack_ns
 
-# ChirpStack Application Server configuration.
+# chirpstack application server configuration.
 chirpstack_application_server:
   fqdn: localhost
   letsencrypt:
     email: info@example.com
-    request: False
+    request: false
 
