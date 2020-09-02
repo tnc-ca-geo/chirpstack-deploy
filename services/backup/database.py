@@ -6,6 +6,8 @@ from datetime import datetime
 import gzip
 import os
 # third part
+import boto3
+from celery import task
 import sh
 
 
@@ -38,15 +40,27 @@ def backup_db(database_name=None, directory='/tmp', filename=None):
             sh.pg_dump('-U', DATABASE_USER, database_name, '--create', _out=fil)
         return pathname
 
+def copy_to_s3(pathname, bucket='chirpstack-backup', prefix='db_dumps'):
+    s3 = boto3.resource('s3')
+    filename = os.path.split(pathname)[1]
+    dest = os.path.join(prefix, filename)
+    s3.Bucket(bucket).upload_file(pathname, dest)
+    return os.path.join(bucket, dest)
 
-def main():
+
+@task
+def backup_all():
     print('\nBacking up ChirpStack databases:')
     for item in DATABASES:
-        print ('-', item, end=' ')
+        print ('-', item)
         res = backup_db(item, DUMP_DIRECTORY)
-        print('into', res)
+        print('-- into', res)
+        res = copy_to_s3(res)
+        print('-- copied to', res)
+
+
     print('Done\n')
 
 
 if __name__ == '__main__':
-    main()
+    backup_all()
