@@ -1,4 +1,4 @@
-- name: install python
+- name: install
   hosts: 
     - chirpstack_machines
     # - vagrant
@@ -6,8 +6,29 @@
   gather_facts: no
 
   tasks:
-    - name: install python-minimal
-      raw: apt-get install -y python-minimal
+    - name: install basic packages
+      apt: 
+        name:
+          - python-minimal 
+          - python3-pip
+          - python-virtualenv
+          - rabbitmq-server
+        state: present
+        update-cache: yes
+        cache_valid_time: 7200
+      become: yes
+
+    - name: copy python code
+      copy:
+        src: ../services
+        dest: /home/devuser/workspace/
+        owner: devuser
+        group: devuser
+
+    - name: create virtualenv
+      pip:
+        requirements: /home/devuser/workspace/services/requirements.txt
+        virtualenv: /home/devuser/workspace/env
 
 - name: single-server ChirpStack setup
   hosts: 
@@ -15,12 +36,10 @@
     # - vagrant
   vars_files:
     - ./variables/config.yml
+    - ./twelve/chirpstack.codefornature.org.yml
   roles:
     - base
     - iptables
-    # TODO: incorporate later
-    # - nginxinc.nginx
-    # - nginxinc.nginx_config
     - nginx
     - letsencrypt
     - postgresql
@@ -31,4 +50,19 @@
     - chirpstack-network-server
     - chirpstack-application-server
     - chirpstack-geolocation-server
+    # install backup programs
+    - oefenweb.supervisor
   become: yes
+
+- name: falk extras
+  hosts:
+    - chirpstack_machines
+  tasks:
+    - name: create db role for backup scripts
+      postgresql_user:
+        name: devuser
+        password: devuser
+        role_attr_flags: SUPERUSER,LOGIN
+      become_user: postgres
+      become: yes
+      no_log: yes

@@ -90,3 +90,43 @@ chirpstack_application_server:
   letsencrypt:
     email: falk.schuetzenmeister@tnc.org
     request: true
+
+
+# postgresql configuration
+postgresql:
+  databases:
+    -
+      name: chirpstack_as
+      user: chirpstack_as
+      password: chirpstack_as
+    -
+      name: chirpstack_ns
+      user: chirpstack_ns
+      password: chirpstack_ns
+
+
+# supervisor for automated backup
+supervisor_programs_present:
+  chirpstack_database_backup:
+    user: devuser
+    command: /home/devuser/workspace/env/bin/celery worker -A services.celery_app -l info
+    directory: /home/devuser/workspace/
+    stdout_logfile: /var/log/supervisor/chirpstack_backup_database_stdout.log
+    stderr_logfile: /var/log/supervisor/chirpstack_backup_database_stderr.log
+    stdout_logfile_maxbytes: 5MB
+    stderr_logfile_maxbytes: 5MB
+    autostart: true
+    autorestart: true
+    redirect_stderr: false
+    environment: "AWS_ACCESS_KEY_ID={{ aws_chirpstack_user_access_key_id }},AWS_SECRET_ACCESS_KEY={{ aws_chirpstack_user_secret_access_key}}"
+  chirpstack_database_backup_beat:
+    user: devuser
+    command: /home/devuser/workspace/env/bin/celery beat -A services.celery_app -l info
+    directory: /home/devuser/workspace/
+    stdout_logfile: /var/log/supervisor/chirpstack_backup_database_beat_stdout.log
+    stderr_logfile: /var/log/supervisor/chirpstack_backup_database_beat_stderr.log
+    stdout_logfile_maxbytes: 5MB
+    stderr_logfile_maxbytes: 5MB
+    autostart: true
+    autorestart: true
+    redirect_stderr: false

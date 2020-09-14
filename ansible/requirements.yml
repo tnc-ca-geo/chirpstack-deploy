@@ -1,7 +1,13 @@
 ---
 
-- src: nginxinc.nginx
-  version: 0.16.0
+- src: oefenweb.supervisor
+  version: v3.0.1
 
-- src: nginxinc.nginx_config
-  version: 0.1.0
+- src: geerlingguy.rabbitmq
+  version: 1.0.0
+
+#- src: nginxinc.nginx
+#  version: 0.16.0
+
+#- src: nginxinc.nginx_config
+#  version: 0.1.0

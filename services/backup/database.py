@@ -15,7 +15,7 @@ import sh
 DATABASES = ('chirpstack_ns', 'chirpstack_as')
 # make sure that this user exists and has permissions to dump the above tables
 DATABASE_USER = 'devuser'
-DUMP_DIRECTORY = os.path.expanduser('~/chirpstack_dumps/')
+DUMP_DIRECTORY = '/home/devuser/chirpstack_dumps'
 
 
 def get_filename(db_name=None):
@@ -40,6 +40,7 @@ def backup_db(database_name=None, directory='/tmp', filename=None):
             sh.pg_dump('-U', DATABASE_USER, database_name, '--create', _out=fil)
         return pathname
 
+
 def copy_to_s3(pathname, bucket='chirpstack-backup', prefix='db_dumps'):
     s3 = boto3.resource('s3')
     filename = os.path.split(pathname)[1]
@@ -52,13 +53,12 @@ def copy_to_s3(pathname, bucket='chirpstack-backup', prefix='db_dumps'):
 def backup_all():
     print('\nBacking up ChirpStack databases:')
     for item in DATABASES:
+        print(os.environ['HOME'])
         print ('-', item)
-        res = backup_db(item, DUMP_DIRECTORY)
+        res = backup_db(item, directory=DUMP_DIRECTORY)
         print('-- into', res)
         res = copy_to_s3(res)
         print('-- copied to', res)
-
-
     print('Done\n')
 
 

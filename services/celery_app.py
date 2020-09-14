@@ -7,7 +7,7 @@ celery_app = Celery('celery_app')
 celery_app.conf.beat_schedule = {
     'backup': {
         'task': 'services.backup.database.backup_all',
-        'schedule': timedelta(seconds=20),
+        'schedule': timedelta(days=1),
         'args': None
     }
 }
