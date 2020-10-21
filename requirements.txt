@@ -1,2 +1,3 @@
 ansible==2.9.12
 credstash==1.17.1
+paho-mqtt==1.5.1
