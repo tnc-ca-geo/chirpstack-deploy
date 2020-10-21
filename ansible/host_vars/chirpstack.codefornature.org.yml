@@ -1,5 +1,13 @@
 ---
 
+system_user: devuser
+# Don't use forward slashes in the password
+internal_password: "D0nt#te11#t15!"
+external_client_password: "happyL0RA!"
+internal_password_as: "{{ internal_password }}"
+internal_password_ns: "{{ internal_password }}"
+internal_password_gw: "{{ internal_password }}"
+
 # iptable configuration
 iptables:
   accept:
@@ -53,19 +61,19 @@ mosquitto:
   users:
     -
       user: chirpstack_gw
-      password: chirpstack_gw
+      password: "{{ internal_password_gw }}"
       topics:
         - write gateway/+/event/+
         - read gateway/+/command/+
     -
       user: chirpstack_ns
-      password: chirpstack_ns
+      password: "{{ internal_password_ns }}"
       topics:
         - read gateway/+/event/+
         - write gateway/+/command/+
     -
       user: chirpstack_as
-      password: chirpstack_as
+      password: "{{ internal_password_as }}"
       topics:
           - write application/+/device/+/rx
           - write application/+/device/+/join
@@ -91,11 +99,20 @@ mosquitto:
         - read application/+/device/+/location
     -
       user: downstream_client
-      password: happyL0RA
+      password: "{{ external_client_password }}"
       topics:
         - read application/+/device/+/event/+
 
+chirpstack_gateway_bridge:
+  mosquitto_pwd: "{{ internal_password_gw }}"
+
+# Note this nomenclature is not consistent with the others
+chirpstack_network_server_mosquitto_pwd: "{{ internal_password_ns }}"
+chirpstack_network_server_postgres_pwd: "{{ internal_password_ns }}"
+
 chirpstack_application_server:
+  mosquitto_pwd: "{{ internal_password_as }}"
+  postgres_pwd: "{{ internal_password_as }}"
   fqdn: chirpstack.codefornature.org
   letsencrypt:
     email: falk.schuetzenmeister@tnc.org
@@ -108,17 +125,17 @@ postgresql:
     -
       name: chirpstack_as
       user: chirpstack_as
-      password: chirpstack_as
+      password: "{{ internal_password_as }}"
     -
       name: chirpstack_ns
       user: chirpstack_ns
-      password: chirpstack_ns
+      password: "{{ internal_password_ns }}"
 
 
 # supervisor for automated backup
 supervisor_programs_present:
   chirpstack_database_backup:
-    user: devuser
+    user: "{{ system_user }}"
     command: /home/devuser/workspace/env/bin/celery worker -A services.celery_app -l info
     directory: /home/devuser/workspace/
     stdout_logfile: /var/log/supervisor/chirpstack_backup_database_stdout.log
@@ -130,7 +147,7 @@ supervisor_programs_present:
     redirect_stderr: false
     environment: "AWS_ACCESS_KEY_ID={{ aws_chirpstack_user_access_key_id }},AWS_SECRET_ACCESS_KEY={{ aws_chirpstack_user_secret_access_key}}"
   chirpstack_database_backup_beat:
-    user: devuser
+    user: "{{ system_user }}"
     command: /home/devuser/workspace/env/bin/celery beat -A services.celery_app -l info
     directory: /home/devuser/workspace/
     stdout_logfile: /var/log/supervisor/chirpstack_backup_database_beat_stdout.log

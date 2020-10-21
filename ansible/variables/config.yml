@@ -5,6 +5,5 @@ chirpstack_network_server_band: "US915"
 
 chirpstack_network_server_extra_channels: ""
 
-
 # supervisor settings for backup services
 supervisor_python_version: 3
