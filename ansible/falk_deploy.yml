@@ -5,7 +5,14 @@
   become: yes
   gather_facts: no
 
+  # this is necessary since the mosquitto version 
+  # shipped with some distribution has startup issues
   tasks:
+    - name: add mosquitto repository
+      apt_repository:
+        repo: ppa:mosquitto-dev/mosquitto-ppa
+        state: present
+
     - name: install basic packages
       apt: 
         name:

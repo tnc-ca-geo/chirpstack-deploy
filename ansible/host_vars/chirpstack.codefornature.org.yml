@@ -1,4 +1,5 @@
 ---
+
 # iptable configuration
 iptables:
   accept:
@@ -72,18 +73,27 @@ mosquitto:
           - write application/+/device/+/error
           - write application/+/device/+/status
           - write application/+/device/+/location
+          - write application/+/device/+/event/+
+          - read application/+/device/+/command/+
           - read application/+/device/+/tx
     -
       user: chirpstack_app
       password: chirpstack_app
       topics:
+        - write application/+/device/+/command/+
         - write application/+/device/+/tx
+        - read application/+/device/+/event/+
         - read application/+/device/+/rx
         - read application/+/device/+/join
         - read application/+/device/+/ack
         - read application/+/device/+/error
         - read application/+/device/+/status
         - read application/+/device/+/location
+    -
+      user: downstream_client
+      password: happyL0RA
+      topics:
+        - read application/+/device/+/event/+
 
 chirpstack_application_server:
   fqdn: chirpstack.codefornature.org
