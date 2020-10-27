@@ -1,3 +1,9 @@
+# ansible
 ansible==2.9.12
 credstash==1.17.1
+# services
+sh==1.14.0
+celery==4.4.7
+boto3==1.14.54
+# clients
 paho-mqtt==1.5.1

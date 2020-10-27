@@ -2,16 +2,24 @@
   hosts: 
     - chirpstack_machines
     # - vagrant
+  vars_files:
+    - ./twelve/chirpstack.codefornature.org.yml
   become: yes
   gather_facts: no
 
   # this is necessary since the mosquitto version 
   # shipped with some distribution has startup issues
   tasks:
-    - name: add mosquitto repository
-      apt_repository:
-        repo: ppa:mosquitto-dev/mosquitto-ppa
+    - name: add key
+      apt_key:
+        url: "http://repo.mosquitto.org/debian/mosquitto-repo.gpg.key"
         state: present
+
+   # - name: add mosquitto repository
+   #   apt_repository:
+   #     repo: ppa:mosquitto-dev/mosquitto-ppa
+   #     mode: 666
+   #     state: present
 
     - name: install basic packages
       apt: 
@@ -25,17 +33,45 @@
         cache_valid_time: 7200
       become: yes
 
-    - name: copy python code
-      copy:
-        src: ../services
-        dest: /home/devuser/workspace/
-        owner: devuser
-        group: devuser
+    - name: create workspace directory
+      file:
+        path: "/home/{{ system_user }}/user/workspace"
+        state: directory
+        mode: '755'
+        owner: "{{ system_user }}"
+        group: "{{ system_user }}"
 
-    - name: create virtualenv
+    # we might need to set workspace to the correct owner
+    # TODO: rather clumsy and should be straighten out
+    - name: copy services code
+      copy:
+        src: "../services"
+        dest: "/home/{{ system_user }}/workspace/"
+        owner: "{{ system_user }}"
+        group: "{{ system_user }}"
+
+    - name: copy clients code
+      copy:
+        src: "../clients"
+        dest: "/home/{{ system_user }}/workspace/"
+        owner: "{{ system_user }}"
+        group: "{{ system_user }}"
+
+    - name: copy requirements
+      copy:
+        src: "../requirements.txt"
+        dest: "/home/{{ system_user }}/workspace/"
+        owner: "{{ system_user }}"
+        group: "{{ system_user }}"
+        mode: '644'
+
+    - name: create virtual env
       pip:
-        requirements: /home/devuser/workspace/services/requirements.txt
-        virtualenv: /home/devuser/workspace/env
+        requirements: "/home/{{ system_user }}/workspace/requirements.txt"
+        virtualenv: "/home/{{ system_user }}/workspace/env"
+      become: true
+      become_user: "{{ system_user }}"
+
 
 - name: single-server ChirpStack setup
   hosts: 
@@ -67,8 +103,8 @@
   tasks:
     - name: create db role for backup scripts
       postgresql_user:
-        name: devuser
-        password: devuser
+        name: "{{ system_user }}"
+        password: "{{ system_user }}"
         role_attr_flags: SUPERUSER,LOGIN
       become_user: postgres
       become: yes

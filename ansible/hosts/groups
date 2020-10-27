@@ -1,6 +1,6 @@
 [chirpstack]
-chirpstack.codefornature.org
-# vagrant
+# chirpstack.codefornature.org
+chirpstack-pi.local
 
 [chirpstack_machines:children]
 chirpstack

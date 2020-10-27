@@ -1,5 +1,9 @@
 ---
 
+internal_password: "{{ lookup('credstash', 'CHIRPSTACK_INTERNAL_PASSWORD') }}"
+
+external_client_password: "{{ lookup('credstash', 'CHIRPSTACK_EXTERNAL_CLIENT_PASSWORD') }}"
+
 aws_chirpstack_user_access_key_id: "{{ lookup('credstash', 'AWS_CHIRPSTACK_USER_ACCESS_KEY_ID') }}"
 
 aws_chirpstack_user_secret_access_key: "{{ lookup('credstash', 'AWS_CHIRPSTACK_USER_SECRET_ACCESS_KEY') }}"

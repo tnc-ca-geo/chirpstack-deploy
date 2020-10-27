@@ -11,11 +11,14 @@ from celery import task
 import sh
 
 
+HOME = os.path.expanduser('~')
 # (({database_name}, {database_owner}, {password}), ...)
 DATABASES = ('chirpstack_ns', 'chirpstack_as')
 # make sure that this user exists and has permissions to dump the above tables
-DATABASE_USER = 'devuser'
-DUMP_DIRECTORY = '/home/devuser/chirpstack_dumps'
+DATABASE_USER = os.environ.get('DATABASE_ADMIN_USER') or 'devuser'
+DUMP_DIRECTORY = os.path.join(HOME, 'chirpstack_dumps')
+# this is somewhat cumbersome but retains compatibility with older versions
+AWS_S3 = False if os.environ.get('USE_AWS_S3') == "False" else True
 
 
 def get_filename(db_name=None):
@@ -57,8 +60,9 @@ def backup_all():
         print ('-', item)
         res = backup_db(item, directory=DUMP_DIRECTORY)
         print('-- into', res)
-        res = copy_to_s3(res)
-        print('-- copied to', res)
+        if AWS_S3:
+            res = copy_to_s3(res)
+            print('-- copied to', res)
     print('Done\n')
 
 

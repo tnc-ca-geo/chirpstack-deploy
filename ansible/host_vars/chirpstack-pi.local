@@ -1,8 +1,9 @@
 ---
-system_user: devuser
+system_user: tnc
 # Don't use forward slashes in the password
-internal_password: "D0nt#te11#t15!"
-external_client_password: "happyL0RA!"
+# internal_password and
+# external_client_password are set in 
+# twelve/chirpstack.codefornature.org.yml
 internal_password_as: "{{ internal_password }}"
 internal_password_ns: "{{ internal_password }}"
 internal_password_gw: "{{ internal_password }}"
@@ -115,7 +116,7 @@ chirpstack_application_server:
   fqdn: chirpstack.codefornature.org
   letsencrypt:
     email: falk.schuetzenmeister@tnc.org
-    request: true
+    request: false
 
 # postgresql configuration
 postgresql:
@@ -129,13 +130,12 @@ postgresql:
       user: chirpstack_ns
       password: "{{ internal_password_ns }}"
 
-
 # supervisor for automated backup
 supervisor_programs_present:
   chirpstack_database_backup:
     user: "{{ system_user }}"
-    command: /home/devuser/workspace/env/bin/celery worker -A services.celery_app -l info
-    directory: /home/devuser/workspace/
+    command: "/home/{{ system_user }}/workspace/env/bin/celery worker -A services.celery_app -l info"
+    directory: "/home/{{ system_user }}/workspace/"
     stdout_logfile: /var/log/supervisor/chirpstack_backup_database_stdout.log
     stderr_logfile: /var/log/supervisor/chirpstack_backup_database_stderr.log
     stdout_logfile_maxbytes: 5MB
@@ -143,11 +143,11 @@ supervisor_programs_present:
     autostart: true
     autorestart: true
     redirect_stderr: false
-    environment: "AWS_ACCESS_KEY_ID={{ aws_chirpstack_user_access_key_id }},AWS_SECRET_ACCESS_KEY={{ aws_chirpstack_user_secret_access_key}}"
+    environment: "USE_AWS_S3=False"
   chirpstack_database_backup_beat:
     user: "{{ system_user }}"
-    command: /home/devuser/workspace/env/bin/celery beat -A services.celery_app -l info
-    directory: /home/devuser/workspace/
+    command: "/home/{{ system_user }}/workspace/env/bin/celery beat -A services.celery_app -l info"
+    directory: "/home/{{ system_user }}/workspace/"
     stdout_logfile: /var/log/supervisor/chirpstack_backup_database_beat_stdout.log
     stderr_logfile: /var/log/supervisor/chirpstack_backup_database_beat_stderr.log
     stdout_logfile_maxbytes: 5MB
@@ -155,3 +155,19 @@ supervisor_programs_present:
     autostart: true
     autorestart: true
     redirect_stderr: false
+  mqtt_client_service:
+    user: "{{ system_user }}"
+    command: "/home/{{ system_user }}/workspace/env/bin/python simple_mqtt_client.py"
+    directory: "/home/{{ system_user }}/workspace/clients"
+    stdout_logfile: /var/log/supervisor/simple_mqtt_client_stdout.log
+    stderr_logfile: /var/log/supervisor/simple_mqtt_client_stderr.log
+    stdout_logfile_maxbytes: 5MB
+    stderr_logfile_maxbytes: 5MB
+    autostart: true
+    autorestart: true
+    redirect_stderr: false
+    environment: >-
+        CSV_PATH=lora_data/cv50.csv,MQTT_HOST=localhost,
+        MQTT_CLIENT_PASSWORD="{{ external_client_password }}",
+        MQTT_TOPIC="application/+/device/+/event/up",
+        HOME="/home/{{ system_user }}",LOCAL_TZ="Pacific/Honolulu"
